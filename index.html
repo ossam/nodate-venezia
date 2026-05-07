@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a1614">
+<title>野点 — Venezia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Serif+JP:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8;
+    --bg-soft: #ebe4d8;
+    --ink: #1a1614;
+    --ink-soft: #5a4f47;
+    --ink-mute: #8a7f76;
+    --accent: #8b3a3a;
+    --accent-soft: #c9a4a4;
+    --line: rgba(26, 22, 20, 0.12);
+    --paper: #faf6ee;
+    --shadow: 0 1px 3px rgba(26, 22, 20, 0.05);
+  }
+
+  [data-theme="dark"] {
+    --bg: #1a1614;
+    --bg-soft: #221d1a;
+    --ink: #f0e8da;
+    --ink-soft: #c4b8a8;
+    --ink-mute: #807368;
+    --accent: #d4a4a4;
+    --accent-soft: #8b3a3a;
+    --line: rgba(240, 232, 218, 0.12);
+    --paper: #221d1a;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior-y: contain;
+  }
+
+  body {
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  /* === Header === */
+  .header {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .brand-mark {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  .brand-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-mute);
+    letter-spacing: 0.15em;
+  }
+
+  .theme-toggle {
+    background: none;
+    border: 1px solid var(--line);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    color: var(--ink-soft);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .theme-toggle:active {
+    transform: scale(0.92);
+  }
+
+  /* === Tab navigation === */
+  .tabs {
+    position: sticky;
+    top: 57px;
+    background: var(--bg);
+    z-index: 99;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    border-bottom: 1px solid var(--line);
+    padding: 0 12px;
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab {
+    display: inline-block;
+    padding: 12px 14px;
+    background: none;
+    border: none;
+    color: var(--ink-mute);
+    font-family: 'Noto Serif JP', serif;
+    font-size: 13px;
+    font-weight: 400;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+    letter-spacing: 0.02em;
+  }
+
+  .tab.active {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 14px;
+    right: 14px;
+    height: 1.5px;
+    background: var(--accent);
+  }
+
+  .tab-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 10px;
+    color: var(--ink-mute);
+    margin-right: 4px;
+    font-style: italic;
+  }
+
+  .tab.active .tab-num {
+    color: var(--accent);
+  }
+
+  /* === Main content === */
+  main {
+    padding: 22px 20px 40px;
+  }
+
+  .section {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .section.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-title {
+    margin-bottom: 22px;
+  }
+
+  .section-title-jp {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+
+  .section-title-en {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-mute);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .scene-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin: 24px 0 10px;
+    padding-bottom: 4px;
+    border-bottom: 0.5px solid var(--accent-soft);
+  }
+
+  .scene-label:first-child {
+    margin-top: 0;
+  }
+
+  .phrase {
+    background: var(--paper);
+    border-radius: 6px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    border-left: 2px solid var(--accent-soft);
+    box-shadow: var(--shadow);
+    transition: all 0.2s;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .phrase:active {
+    transform: scale(0.99);
+    border-left-color: var(--accent);
+  }
+
+  .phrase-en {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    line-height: 1.45;
+    color: var(--ink);
+    margin-bottom: 6px;
+    font-weight: 500;
+    letter-spacing: 0.005em;
+  }
+
+  .phrase-en em, .phrase-en i {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .phrase-ja {
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    font-weight: 300;
+  }
+
+  .star {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-mute);
+    font-size: 14px;
+    transition: all 0.2s;
+    opacity: 0.4;
+  }
+
+  .phrase.starred .star {
+    color: var(--accent);
+    opacity: 1;
+  }
+
+  .vocab-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .vocab-item {
+    background: var(--paper);
+    padding: 10px 12px;
+    border-radius: 6px;
+    box-shadow: var(--shadow);
+  }
+
+  .vocab-jp {
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  .vocab-en {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-style: italic;
+    margin-top: 2px;
+  }
+
+  .quote-box {
+    background: var(--paper);
+    border-radius: 6px;
+    padding: 18px;
+    margin: 12px 0;
+    border-left: 2px solid var(--accent);
+    box-shadow: var(--shadow);
+  }
+
+  .quote-jp {
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    margin-bottom: 6px;
+  }
+
+  .quote-en {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+
+  /* === Floating action: jump to favorites === */
+  .fab {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--paper);
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(139, 58, 58, 0.35);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .fab:active {
+    transform: scale(0.92);
+  }
+
+  .fab-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 10px;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* === Footer mark === */
+  .footer-mark {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .footer-jp {
+    font-size: 16px;
+    color: var(--accent);
+    letter-spacing: 0.4em;
+    margin-bottom: 4px;
+  }
+
+  .footer-en {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.3em;
+  }
+
+  /* Tap to expand: when starred view active */
+  .filter-banner {
+    display: none;
+    padding: 10px 14px;
+    background: var(--accent);
+    color: var(--paper);
+    font-size: 12px;
+    text-align: center;
+    margin-bottom: 16px;
+    border-radius: 4px;
+    font-family: 'Cormorant Garamond', serif;
+    letter-spacing: 0.15em;
+  }
+
+  body.show-favorites .filter-banner {
+    display: block;
+  }
+
+  body.show-favorites .phrase:not(.starred) {
+    display: none;
+  }
+
+  body.show-favorites .scene-label {
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="brand">
+    <span class="brand-mark">茶</span>
+    <span class="brand-sub">NODATE · VENEZIA</span>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+    <span id="theme-icon">◐</span>
+  </button>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-target="intro"><span class="tab-num">01</span>自己紹介</button>
+  <button class="tab" data-target="exhibition"><span class="tab-num">02</span>展覧会</button>
+  <button class="tab" data-target="stories"><span class="tab-num">03</span>お話</button>
+  <button class="tab" data-target="approached"><span class="tab-num">04</span>声かけ</button>
+  <button class="tab" data-target="serve"><span class="tab-num">05</span>振る舞い</button>
+  <button class="tab" data-target="guide"><span class="tab-num">06</span>作法</button>
+  <button class="tab" data-target="movements"><span class="tab-num">07</span>所作</button>
+  <button class="tab" data-target="permits"><span class="tab-num">08</span>許可</button>
+  <button class="tab" data-target="utensils"><span class="tab-num">09</span>道具</button>
+  <button class="tab" data-target="deep"><span class="tab-num">10</span>深い問い</button>
+</nav>
+
+<main>
+  <div class="filter-banner">★ お気に入りのみ表示中 ・ タップで戻る</div>
+
+  <!-- 01 -->
+  <section class="section active" id="intro">
+    <div class="section-title">
+      <div class="section-title-jp">自己紹介</div>
+      <div class="section-title-en">Introducing yourself</div>
+    </div>
+
+    <div class="scene-label">Standard</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">I'm a Japanese artist and tea practitioner. Today I'm offering tea as a small cultural gesture.</div>
+      <div class="phrase-ja">日本のアーティスト、そして茶の実践者です。今日は文化的なおもてなしとしてお茶を点てています</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">My name is Osamu Ise. I'm here for an exhibition that runs alongside the Biennale.</div>
+      <div class="phrase-ja">伊勢収と申します。ビエンナーレと並行する展覧会で来ています</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">It's called <i>GO FOR KOGEI in Venice</i> — a Japanese craft exhibition at Palazzo Pisani Santa Marina.</div>
+      <div class="phrase-ja">「GO FOR KOGEI in Venice」というパラッツォ・ピサーニ・サンタ・マリーナでの工芸展です</div>
+    </div>
+
+    <div class="scene-label">About tea</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">I practice Japanese tea ceremony — Urasenke school.</div>
+      <div class="phrase-ja">裏千家の茶道を実践しています</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">I'm a <i>chajin</i> — a person of tea.</div>
+      <div class="phrase-ja">茶人 — 茶に生きる者です</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">I study and practice the way of tea.</div>
+      <div class="phrase-ja">茶の道を学び、実践しています</div>
+    </div>
+
+    <div class="scene-label">Background</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">I live in Nagano, in the mountains of central Japan.</div>
+      <div class="phrase-ja">日本の中部、長野の山あいに住んでいます</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">I also paint — using gold leaf and mixed media.</div>
+      <div class="phrase-ja">絵も描きます。金箔やミクストメディアを使って</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">For me, painting and tea are the same practice — just different forms.</div>
+      <div class="phrase-ja">私にとって絵と茶は同じ実践です。形が違うだけで</div>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section class="section" id="exhibition">
+    <div class="section-title">
+      <div class="section-title-jp">展覧会について</div>
+      <div class="section-title-en">About the exhibition</div>
+    </div>
+
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">The exhibition is called <i>Ethnography of the Body and Material — Slowness and Depth in an Accelerated Society</i>.</div>
+      <div class="phrase-ja">「身体と素材のエスノグラフィー — 加速する社会のなかの遅さと深さ」</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">It runs from May 9 to November 22, alongside the Biennale.</div>
+      <div class="phrase-ja">5月9日から11月22日まで、ビエンナーレと並行して開催</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">The venue is Palazzo Pisani Santa Marina, in Cannaregio.</div>
+      <div class="phrase-ja">会場はカンナレージョ地区のパラッツォ・ピサーニ・サンタ・マリーナ</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Ten Japanese kogei artists — ceramics, glass, lacquer, embroidery, fiber.</div>
+      <div class="phrase-ja">10人の日本の工芸作家。陶芸、ガラス、漆、刺繍、繊維</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Curated by Yuji Akimoto — formerly director of the 21st Century Museum in Kanazawa.</div>
+      <div class="phrase-ja">秋元雄史キュレーション。元金沢21世紀美術館館長</div>
+    </div>
+
+    <div class="scene-label">Why nodate</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">The theme is "slowness and depth" — and tea ceremony embodies exactly that.</div>
+      <div class="phrase-ja">テーマが「遅さと深さ」 — 茶道はまさにそれを体現</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Tea is the same practice as the works inside — just in another form.</div>
+      <div class="phrase-ja">茶は中の作品と同じ実践です。形が違うだけで</div>
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section class="section" id="stories">
+    <div class="section-title">
+      <div class="section-title-jp">お茶と日本のお話</div>
+      <div class="section-title-en">Stories of tea & Japan</div>
+    </div>
+
+    <div class="scene-label">Essence of tea</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Tea ceremony is not really about the tea — it's about being present, together.</div>
+      <div class="phrase-ja">茶道はお茶そのものではなく、共にこの瞬間にいること</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">The host prepares for hours. The guest drinks in three sips. The asymmetry is the point.</div>
+      <div class="phrase-ja">亭主は何時間も準備し、客は三口で飲む。その非対称性こそが本質</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">In Japan we have a word — <i>ma</i> — meaning the space between things. Silence, pause, emptiness. Tea lives in <i>ma</i>.</div>
+      <div class="phrase-ja">日本には「間」という言葉があります。物と物のあいだ、沈黙、余白。茶は「間」に生きる</div>
+    </div>
+
+    <div class="scene-label">Wabi-sabi</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">"Wabi" is finding beauty in simplicity. "Sabi" is finding beauty in the marks of time.</div>
+      <div class="phrase-ja">「侘び」は簡素さの美。「寂び」は時間の痕跡の美</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">A cracked bowl repaired with gold — we call this <i>kintsugi</i>. The break becomes the most beautiful part.</div>
+      <div class="phrase-ja">割れた茶碗を金で継ぐ「金継ぎ」。割れた箇所が最も美しい部分に</div>
+    </div>
+
+    <div class="scene-label">My life</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">I live in Nagano, in the mountains. Cold winters, deep snow, very quiet.</div>
+      <div class="phrase-ja">長野の山に住んでいます。冬は寒く、雪深く、静か</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Living slowly in the mountains shaped how I see tea — and painting.</div>
+      <div class="phrase-ja">山でゆっくり暮らすことが、茶と絵への眼差しを形作った</div>
+    </div>
+
+    <div class="scene-label">This bowl</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Each tea bowl has its own character — like a person. We choose them by season and mood.</div>
+      <div class="phrase-ja">茶碗にはそれぞれ人格がある。季節や気分で選びます</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">This bowl has traveled far to be here today.</div>
+      <div class="phrase-ja">この茶碗は遠くからここまで旅してきました</div>
+    </div>
+
+    <div class="scene-label">Venice & tea</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Venice and Japanese tea share something — both are about water, light, and slow time.</div>
+      <div class="phrase-ja">ベネチアと日本の茶には共通点がある。水、光、ゆっくりした時間</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Murano glass and Japanese ceramics are cousins — both born from fire and patience.</div>
+      <div class="phrase-ja">ムラーノガラスと日本の陶磁器は親戚。火と忍耐から生まれた</div>
+    </div>
+  </section>
+
+  <!-- 04 -->
+  <section class="section" id="approached">
+    <div class="section-title">
+      <div class="section-title-jp">声をかけられたとき</div>
+      <div class="section-title-en">When approached</div>
+    </div>
+
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">This is a Japanese tea ceremony. We call it <i>nodate</i> — outdoor tea.</div>
+      <div class="phrase-ja">これは日本の茶道で、「野点」といって屋外で行うお茶</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">I'm preparing matcha, traditional Japanese green tea.</div>
+      <div class="phrase-ja">抹茶を点てています</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">It's a small, peaceful ritual. Please feel free to watch.</div>
+      <div class="phrase-ja">静かな儀式です。よかったら見ていってください</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">In Japan, this practice is over 400 years old.</div>
+      <div class="phrase-ja">400年以上の歴史があります</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">This is the Urasenke style, one of the main schools.</div>
+      <div class="phrase-ja">裏千家という主要な流派の一つ</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Today I'll perform a portable form of tea — made for travel and the outdoors.</div>
+      <div class="phrase-ja">今日は持ち運びと屋外のために作られた、携帯式の点前を</div>
+    </div>
+  </section>
+
+  <!-- 05 -->
+  <section class="section" id="serve">
+    <div class="section-title">
+      <div class="section-title-jp">振る舞う・招き入れる</div>
+      <div class="section-title-en">Serving guests</div>
+    </div>
+
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Would you like to try a bowl of matcha?</div>
+      <div class="phrase-ja">一服いかがですか?</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">It's a gift — please enjoy.</div>
+      <div class="phrase-ja">差し上げます。どうぞ</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Take your time. There's no rush.</div>
+      <div class="phrase-ja">ゆっくりどうぞ</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Please eat the sweet first, before the tea.</div>
+      <div class="phrase-ja">お菓子を先に召し上がってください</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">The sweetness balances the bitterness of matcha.</div>
+      <div class="phrase-ja">甘さが抹茶の苦味と調和します</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">This is <i>higashi</i> — a dry sweet, perfect for outdoor tea.</div>
+      <div class="phrase-ja">これは干菓子。野点に向いた乾菓子です</div>
+    </div>
+  </section>
+
+  <!-- 06 -->
+  <section class="section" id="guide">
+    <div class="section-title">
+      <div class="section-title-jp">客に作法を伝える</div>
+      <div class="section-title-en">Guiding the guest</div>
+    </div>
+
+    <div class="scene-label">Receiving</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Bow slightly when you receive the bowl.</div>
+      <div class="phrase-ja">受け取るとき、軽くお辞儀を</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Place it on your left palm, support with your right hand.</div>
+      <div class="phrase-ja">左手にのせ、右手で支えます</div>
+    </div>
+
+    <div class="scene-label">Turning</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Turn the bowl clockwise twice — about 90° each time.</div>
+      <div class="phrase-ja">時計回りに2回、90度ずつ</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">The "front" is the most beautiful side — offered to you out of respect. You turn it away to drink.</div>
+      <div class="phrase-ja">正面は最も美しい面。敬意を込めて向けているので、避けて飲みます</div>
+    </div>
+
+    <div class="scene-label">Drinking</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Drink in three sips. The last sip can be a small slurp — it's polite.</div>
+      <div class="phrase-ja">三口半で。最後は吸い切るのが礼儀</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Wipe the rim with your fingers, then turn the bowl back.</div>
+      <div class="phrase-ja">飲み口を指で清め、茶碗を元に戻します</div>
+    </div>
+  </section>
+
+  <!-- 07 -->
+  <section class="section" id="movements">
+    <div class="section-title">
+      <div class="section-title-jp">所作を説明する</div>
+      <div class="section-title-en">Explaining movements</div>
+    </div>
+
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">First, I purify the scoop and tea container with this silk cloth — the <i>fukusa</i>.</div>
+      <div class="phrase-ja">袱紗で茶杓と棗を清めます</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">I rinse the whisk in hot water to soften and check it.</div>
+      <div class="phrase-ja">茶筅通し — 茶筅を湯で温めて確認</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Two scoops of matcha into the bowl.</div>
+      <div class="phrase-ja">抹茶を二杯入れます</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">I pour hot water and whisk in an "M" shape until it foams.</div>
+      <div class="phrase-ja">湯を注ぎ、Mの字を描くように点てます</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">In Urasenke, we whisk until the surface is fully covered in fine foam.</div>
+      <div class="phrase-ja">裏千家では、細かい泡で表面を覆うまで</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Every movement has a meaning — it's a form of meditation.</div>
+      <div class="phrase-ja">すべての所作に意味がある。一種の瞑想です</div>
+    </div>
+  </section>
+
+  <!-- 08 -->
+  <section class="section" id="permits">
+    <div class="section-title">
+      <div class="section-title-jp">許可を聞かれたとき</div>
+      <div class="section-title-en">If questioned</div>
+    </div>
+
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">We're not selling anything — this is a cultural offering.</div>
+      <div class="phrase-ja">販売ではありません。文化的なおもてなしです</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Is this spot okay, or should we move?</div>
+      <div class="phrase-ja">ここで大丈夫?移動しましょうか?</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">We'll be finished in about 30 minutes.</div>
+      <div class="phrase-ja">30分ほどで終わります</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">We'll clean up everything before we leave.</div>
+      <div class="phrase-ja">帰る前にすべて片付けます</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Is there a permit we should have?</div>
+      <div class="phrase-ja">許可は必要ですか?</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">I'm an artist visiting for an exhibition during the Biennale.</div>
+      <div class="phrase-ja">ビエンナーレ期間中の展覧会で訪れているアーティストです</div>
+    </div>
+
+    <div class="scene-label">Photos</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">You're welcome to take photos.</div>
+      <div class="phrase-ja">写真OKです</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Could I ask you not to post my face online?</div>
+      <div class="phrase-ja">顔はSNSに載せないでもらえますか</div>
+    </div>
+
+    <div class="scene-label">Safety phrase</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">One moment — let me find the right words.</div>
+      <div class="phrase-ja">ちょっと待って、正しい言葉を探します</div>
+    </div>
+  </section>
+
+  <!-- 09 -->
+  <section class="section" id="utensils">
+    <div class="section-title">
+      <div class="section-title-jp">道具の名前</div>
+      <div class="section-title-en">Utensils</div>
+    </div>
+
+    <div class="vocab-grid">
+      <div class="vocab-item"><div class="vocab-jp">茶筅 chasen</div><div class="vocab-en">bamboo whisk</div></div>
+      <div class="vocab-item"><div class="vocab-jp">茶碗 chawan</div><div class="vocab-en">tea bowl</div></div>
+      <div class="vocab-item"><div class="vocab-jp">茶杓 chashaku</div><div class="vocab-en">bamboo scoop</div></div>
+      <div class="vocab-item"><div class="vocab-jp">棗 natsume</div><div class="vocab-en">tea container</div></div>
+      <div class="vocab-item"><div class="vocab-jp">袱紗 fukusa</div><div class="vocab-en">silk purifying cloth</div></div>
+      <div class="vocab-item"><div class="vocab-jp">茶巾 chakin</div><div class="vocab-en">linen wiping cloth</div></div>
+      <div class="vocab-item"><div class="vocab-jp">建水 kensui</div><div class="vocab-en">waste water bowl</div></div>
+      <div class="vocab-item"><div class="vocab-jp">盆 bon</div><div class="vocab-en">tray</div></div>
+      <div class="vocab-item"><div class="vocab-jp">和菓子 wagashi</div><div class="vocab-en">Japanese sweet</div></div>
+      <div class="vocab-item"><div class="vocab-jp">干菓子 higashi</div><div class="vocab-en">dry sweet</div></div>
+      <div class="vocab-item"><div class="vocab-jp">点前 temae</div><div class="vocab-en">tea procedure</div></div>
+      <div class="vocab-item"><div class="vocab-jp">亭主 teishu</div><div class="vocab-en">host</div></div>
+    </div>
+
+    <div class="scene-label">In Japanese</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">"Otemae chōdai itashimasu" — guest, before drinking</div>
+      <div class="phrase-ja">お点前頂戴いたします(客 / 飲む前)</div>
+    </div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">"Kekkō de gozaimashita" — guest, after drinking</div>
+      <div class="phrase-ja">結構でございました(客 / 飲んだ後)</div>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="section" id="deep">
+    <div class="section-title">
+      <div class="section-title-jp">深い質問が来たら</div>
+      <div class="section-title-en">Deeper questions</div>
+    </div>
+
+    <div class="scene-label">Why so slow?</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Slowness is the point. It changes how you see the moment.</div>
+      <div class="phrase-ja">遅さが本質です。瞬間の見え方が変わります</div>
+    </div>
+
+    <div class="scene-label">Why turn the bowl?</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">It's an exchange of respect — the host shows the front to the guest, the guest turns it away to drink from a humbler side.</div>
+      <div class="phrase-ja">敬意の交換です。亭主は正面を客に向け、客はそれを避けて飲む</div>
+    </div>
+
+    <div class="scene-label">The spirit of tea</div>
+    <div class="quote-box">
+      <div class="quote-jp">一期一会  ICHIGO ICHIE</div>
+      <div class="quote-en">"One time, one meeting." This moment will never happen again.</div>
+    </div>
+    <div class="quote-box">
+      <div class="quote-jp">和敬清寂  WA · KEI · SEI · JAKU</div>
+      <div class="quote-en">Harmony · Respect · Purity · Tranquility — the four principles.</div>
+    </div>
+
+    <div class="scene-label">Origin</div>
+    <div class="phrase"><div class="star">★</div>
+      <div class="phrase-en">Sen no Rikyū, the 16th-century master, shaped this practice. Urasenke continues his teachings.</div>
+      <div class="phrase-ja">16世紀の千利休が形作り、裏千家がその教えを継いでいる</div>
+    </div>
+  </section>
+
+  <div class="footer-mark">
+    <div class="footer-jp">和</div>
+    <div class="footer-en">ICHIGO · ICHIE</div>
+  </div>
+</main>
+
+<button class="fab" id="fab" onclick="toggleFavorites()" aria-label="Toggle favorites">
+  <span id="fab-icon">★</span>
+  <span class="fab-count" id="fab-count" style="display:none;">0</span>
+</button>
+
+<script>
+  // Theme toggle
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') || 'light';
+    const next = current === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    document.getElementById('theme-icon').textContent = next === 'dark' ? '◑' : '◐';
+    try { localStorage.setItem('theme', next); } catch(e) {}
+  }
+
+  // Restore theme
+  try {
+    const saved = localStorage.getItem('theme');
+    if (saved) {
+      document.documentElement.setAttribute('data-theme', saved);
+      document.getElementById('theme-icon').textContent = saved === 'dark' ? '◑' : '◐';
+    }
+  } catch(e) {}
+
+  // Tab navigation
+  const tabs = document.querySelectorAll('.tab');
+  const sections = document.querySelectorAll('.section');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.target;
+      tabs.forEach(t => t.classList.remove('active'));
+      sections.forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(target).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Auto-scroll tab into view
+      tab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    });
+  });
+
+  // Favorites — store starred phrase indices
+  let starredSet = new Set();
+  try {
+    const saved = JSON.parse(localStorage.getItem('starred') || '[]');
+    starredSet = new Set(saved);
+  } catch(e) {}
+
+  // Assign IDs to phrases and bind star clicks
+  const phrases = document.querySelectorAll('.phrase');
+  phrases.forEach((p, i) => {
+    p.dataset.id = i;
+    if (starredSet.has(i)) p.classList.add('starred');
+
+    const star = p.querySelector('.star');
+    star.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = parseInt(p.dataset.id);
+      if (starredSet.has(id)) {
+        starredSet.delete(id);
+        p.classList.remove('starred');
+      } else {
+        starredSet.add(id);
+        p.classList.add('starred');
+      }
+      try { localStorage.setItem('starred', JSON.stringify([...starredSet])); } catch(e) {}
+      updateFabCount();
+    });
+  });
+
+  function updateFabCount() {
+    const count = starredSet.size;
+    const el = document.getElementById('fab-count');
+    if (count > 0) {
+      el.style.display = 'flex';
+      el.textContent = count;
+    } else {
+      el.style.display = 'none';
+    }
+  }
+  updateFabCount();
+
+  // Toggle favorites view
+  function toggleFavorites() {
+    document.body.classList.toggle('show-favorites');
+    const icon = document.getElementById('fab-icon');
+    if (document.body.classList.contains('show-favorites')) {
+      icon.textContent = '✕';
+      // Show all sections so favorites are visible across all tabs
+      sections.forEach(s => s.classList.add('active'));
+      tabs.forEach(t => t.classList.remove('active'));
+    } else {
+      icon.textContent = '★';
+      // Restore single-tab view
+      sections.forEach(s => s.classList.remove('active'));
+      tabs[0].classList.add('active');
+      sections[0].classList.add('active');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
